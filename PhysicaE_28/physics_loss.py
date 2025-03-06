@@ -34,12 +34,12 @@ def laplacian_cylindrical(psi, rho, z):
     
     return term_rho + d2psi_dz2
 
-def potential(rho, z):
+def potential(rho, z, gamma = 1):
     """
     Returns V(rho,z) = (1/2) m* ω^2 z^2 - e^2/(ε sqrt(rho^2 + (z - z_i)^2))
     """
     # Parabolic term
-    parabolic = 0.5 * mstar * (omega**2) * (z**2)
+    parabolic = gamma * mstar * (omega**2) * (z**2) * 0.5
     
     # Coulomb-like term
     dist = torch.sqrt(rho**2 + (z - z_i)**2 + 1e-12)  # small epsilon to avoid zero

@@ -3,10 +3,6 @@ import torch
 from physics_loss import schrodinger_pde_residual, boundary_loss
 from data_collocation import sample_boundary_points, sample_collocation_points
 
-import torch
-import torch.nn as nn
-import numpy as np
-
 def train_pinn_for_L(model, L, 
                      rho_max=5.0, # radial domain
                      epochs=5000, 
@@ -15,14 +11,14 @@ def train_pinn_for_L(model, L,
                      num_norm=1000, 
                      lambda_pde=1.0, 
                      lambda_bd=10.0, 
-                     lr=1e-3,
+                     lr=1e-4,
                      device=torch.device("cpu")):
     """
     Train the given PINN model for a QW of width L => z in [-L/2, L/2].
     Typical steps:
       1) PDE residual in the interior
       2) Boundary condition (Psi=0 at boundary)
-      3) Normalization (∫|Psi|^2 = 1)
+      3) Normalization (∫|Psi|^2 = 1) #now not needed 
       4) Single combined loss, optimize
     Returns the trained model.
     """
@@ -31,6 +27,7 @@ def train_pinn_for_L(model, L,
 
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    # optimizer= torch.optim.LBFGS(model.parameters(), lr=lr)
 
     for epoch in range(1, epochs+1):
         optimizer.zero_grad()
@@ -60,7 +57,6 @@ def train_pinn_for_L(model, L,
         if epoch % 1000 == 0 or epoch == epochs:
             E_current = model.get_energy().item()
             print(f"[Epoch {epoch:4d}] PDE: {pde_loss.item():.6f}, "
-                  f"BD: {bd_loss.item():.6f}"
-                  f"E~{E_current:.4f}, total: {total_loss.item():.6f}")
+                  f"BD: {bd_loss.item():.6f}, E~{E_current:.4f}, total: {total_loss.item():.6f}")
 
     return model  # trained
